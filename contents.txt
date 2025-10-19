@@ -1,0 +1,7 @@
+Blue Pharma Logistics - Project Contents
+
+/data/ → Cleaned and ready-to-analyze logistics datasets
+/docs/ → Documentation, multilingual READMEs, and hero banner image
+/powerbi/ → DAX measures and KPI definitions
+/sql/ → SQL schema and transformation scripts
+/contents.txt → Summary of project structure and purpose
