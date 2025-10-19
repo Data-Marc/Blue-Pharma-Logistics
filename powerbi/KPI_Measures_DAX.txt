@@ -1,0 +1,141 @@
+-- =====================================================
+-- Blue Pharma Logistics - KPI Measures (Power BI / DAX)
+-- =====================================================
+
+-- 📦 PERFORMANCE INDICATORS
+
+-- 1️⃣ Total Deliveries
+Total Deliveries =
+COUNTROWS(Deliveries)
+
+-- 2️⃣ On-Time Deliveries
+On-Time Deliveries =
+CALCULATE(
+    COUNTROWS(Deliveries),
+    Deliveries[OnTime] = TRUE()
+)
+
+-- 3️⃣ Compliance Rate (% on-time deliveries)
+Compliance Rate =
+DIVIDE(
+    [On-Time Deliveries],
+    [Total Deliveries],
+    0
+)
+
+-- 4️⃣ Total Orders
+Total Orders =
+COUNTROWS(Orders)
+
+-- 5️⃣ Service Level (% of delivered orders)
+Service Level =
+DIVIDE(
+    CALCULATE(COUNTROWS(Orders), Orders[Status] = "Delivered"),
+    [Total Orders],
+    0
+)
+
+-- 🕒 TRANSIT & TIME KPIs
+
+-- 6️⃣ Average Transit Time (days)
+Average Transit Time (days) =
+AVERAGEX(
+    Deliveries,
+    DATEDIFF(Deliveries[DepartureDate], Deliveries[ArrivalDate], DAY)
+)
+
+-- 7️⃣ Max Transit Time (days)
+Max Transit Time (days) =
+MAXX(
+    Deliveries,
+    DATEDIFF(Deliveries[DepartureDate], Deliveries[ArrivalDate], DAY)
+)
+
+-- 8️⃣ Min Transit Time (days)
+Min Transit Time (days) =
+MINX(
+    Deliveries,
+    DATEDIFF(Deliveries[DepartureDate], Deliveries[ArrivalDate], DAY)
+)
+
+-- 💰 COST INDICATORS
+
+-- 9️⃣ Total Logistic Cost
+Total Logistic Cost =
+SUM(Deliveries[Cost])
+
+-- 🔟 Average Delivery Cost
+Average Delivery Cost =
+AVERAGE(Deliveries[Cost])
+
+-- 11️⃣ Cost per On-Time Delivery
+Cost per On-Time Delivery =
+DIVIDE(
+    [Total Logistic Cost],
+    [On-Time Deliveries],
+    0
+)
+
+-- 📈 VOLUME & TREND ANALYSIS
+
+-- 12️⃣ Deliveries over Time
+Deliveries Over Time =
+COUNTROWS(Deliveries)
+
+-- 13️⃣ On-Time Deliveries Trend (Last 30 Days)
+On-Time Deliveries Trend (Last 30 Days) =
+CALCULATE(
+    [Compliance Rate],
+    DATESINPERIOD('Date'[Date], MAX('Date'[Date]), -30, DAY)
+)
+
+-- 14️⃣ Orders by Product Category
+Orders by Product Category =
+CALCULATE(
+    COUNTROWS(Orders),
+    VALUES(Products[Category])
+)
+
+-- 📅 TIME INTELLIGENCE KPIs
+
+-- 15️⃣ Deliveries YTD
+Deliveries YTD =
+TOTALYTD(
+    [Total Deliveries],
+    'Date'[Date]
+)
+
+-- 16️⃣ Deliveries MTD
+Deliveries MTD =
+TOTALMTD(
+    [Total Deliveries],
+    'Date'[Date]
+)
+
+-- 17️⃣ Compliance Rate YoY
+Compliance Rate YoY =
+CALCULATE(
+    [Compliance Rate],
+    SAMEPERIODLASTYEAR('Date'[Date])
+)
+
+-- 18️⃣ Cost YTD
+Total Logistic Cost YTD =
+TOTALYTD(
+    [Total Logistic Cost],
+    'Date'[Date]
+)
+
+-- 19️⃣ MoM Delivery Growth (%)
+MoM Delivery Growth (%) =
+VAR PrevMonth =
+    CALCULATE([Total Deliveries], DATEADD('Date'[Date], -1, MONTH))
+RETURN
+DIVIDE([Total Deliveries] - PrevMonth, PrevMonth, 0)
+
+-- 20️⃣ YoY Cost Growth (%)
+YoY Cost Growth (%) =
+VAR PrevYear =
+    CALCULATE([Total Logistic Cost], SAMEPERIODLASTYEAR('Date'[Date]))
+RETURN
+DIVIDE([Total Logistic Cost] - PrevYear, PrevYear, 0)
