@@ -1,0 +1,110 @@
+// =========================================================
+// 📊 BLUE PHARMA LOGISTICS – MEASURES PACK
+// Author: Marc
+// Version: 1.0
+// Language: EN (US)
+// =========================================================
+
+
+// ----------------------------
+// 🧾 SUPPLY CHAIN COST
+// ----------------------------
+
+Total Supply Chain Cost =
+[Total Transport Cost] +
+SUMX(Inventory, Inventory[StockValue])
+
+Previous Period Cost =
+CALCULATE(
+    [Total Supply Chain Cost],
+    DATEADD(Orders[OrderDate], -1, MONTH)
+)
+
+YoY Cost Change % =
+DIVIDE(
+    [Total Supply Chain Cost] - [Previous Period Cost],
+    [Previous Period Cost],
+    0
+)
+
+
+// ----------------------------
+// ⏱️ DELIVERY PERFORMANCE
+// ----------------------------
+
+Average Cycle Time (Days) =
+AVERAGEX(
+    FILTER(
+        Orders,
+        NOT(ISBLANK(Orders[OrderDate])) &&
+        NOT(ISBLANK(Orders[DeliveryDate]))
+    ),
+    DATEDIFF(Orders[OrderDate], Orders[DeliveryDate], DAY)
+)
+
+Delayed Deliveries Count =
+COUNTROWS(
+    FILTER(
+        Orders,
+        Orders[DeliveryDate] > Orders[RequestedDeliveryDate]
+    )
+)
+
+Delivery Delay Rate % =
+DIVIDE([Delayed Deliveries Count], [Total Orders], 0)
+
+
+// ----------------------------
+// ✅ SERVICE QUALITY
+// ----------------------------
+
+Perfect Order Rate % =
+DIVIDE(
+    COUNTROWS(
+        FILTER(
+            Orders,
+            Orders[OnTimeFlag] = TRUE() &&
+            Orders[InFullFlag] = TRUE()
+        )
+    ),
+    [Total Orders],
+    0
+)
+
+Delivery Accuracy by Region =
+AVERAGEX(
+    VALUES(Orders[Region]),
+    AVERAGE(Orders[DeliveryAccuracy])
+)
+
+
+// ----------------------------
+// 📈 TIME TRENDS
+// ----------------------------
+
+On-Time Trend % =
+CALCULATE(
+    DIVIDE(
+        COUNTROWS(FILTER(Orders, Orders[OnTimeFlag] = TRUE())),
+        [Total Orders]
+    ),
+    ALLEXCEPT(Orders, Orders[OrderDate])
+)
+
+
+// ----------------------------
+// 💰 COST BREAKDOWN
+// ----------------------------
+
+Cost Breakdown by Type =
+SWITCH(
+    TRUE(),
+    SELECTEDVALUE(Transportation[Mode]) <> BLANK(), [Total Transport Cost],
+    SELECTEDVALUE(Inventory[StockValue]) <> BLANK(), SUM(Inventory[StockValue]),
+    SELECTEDVALUE(Suppliers[SupplierName]) <> BLANK(), SUMX(Suppliers, Suppliers[ReliabilityRate]) * 1000
+)
+
+
+// =========================================================
+// END OF FILE
+// =========================================================
